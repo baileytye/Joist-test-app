@@ -37,6 +37,15 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
+        <TextView
+            android:id="@+id/charCounter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="end"
+            android:text="100 characters remaining"
+            android:textAppearance="?attr/textAppearanceBodySmall" />
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/submitButton"
             android:layout_width="match_parent"

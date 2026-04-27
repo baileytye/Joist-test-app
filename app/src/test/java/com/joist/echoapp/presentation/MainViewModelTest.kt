@@ -3,6 +3,7 @@ package com.joist.echoapp.presentation
 import com.joist.echoapp.domain.TextRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -10,6 +11,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -62,5 +64,44 @@ class MainViewModelTest {
 
         assertTrue(viewModel.uiState.value is EchoUiState.Error)
         verify(repository).validate("")
+    }
+
+    @Test
+    fun `onTextChanged updates remainingChars`() = runTest(testDispatcher) {
+        val viewModel = MainViewModel(repository)
+
+        viewModel.onTextChanged("Hello")
+
+        assertEquals(95, viewModel.remainingChars.value)
+    }
+
+    @Test
+    fun `submit over limit emits Error without calling repository`() = runBlocking {
+        val viewModel = MainViewModel(repository)
+        val longText = "a".repeat(101)
+
+        viewModel.submit(longText)
+
+        assertTrue(viewModel.uiState.value is EchoUiState.Error)
+    }
+
+    @Test
+    fun `isInputValid is false when text is too short`() = runTest(testDispatcher) {
+        val viewModel = MainViewModel(repository)
+
+        viewModel.onTextChanged("Hi")
+        advanceUntilIdle()
+
+        assertFalse(viewModel.isInputValid.value)
+    }
+
+    @Test
+    fun `isInputValid is true when text length is valid`() = runTest(testDispatcher) {
+        val viewModel = MainViewModel(repository)
+
+        viewModel.onTextChanged("Hello")
+        advanceUntilIdle()
+
+        assertTrue(viewModel.isInputValid.value)
     }
 }

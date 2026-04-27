@@ -27,8 +27,9 @@ class MainActivity : AppCompatActivity() {
 
         binding.submitButton.setOnClickListener { submitText() }
 
-        binding.textInput.doOnTextChanged { _, _, _, _ ->
+        binding.textInput.doOnTextChanged { text, _, _, _ ->
             binding.textInputLayout.error = null
+            viewModel.onTextChanged(text?.toString().orEmpty())
         }
 
         lifecycleScope.launch {
@@ -39,15 +40,28 @@ class MainActivity : AppCompatActivity() {
                     binding.apply {
                         textInputLayout.error = if (state is EchoUiState.Error) state.message else null
                         progressBar.isVisible = state is EchoUiState.Loading
-                        submitButton.isEnabled = state !is EchoUiState.Loading
                         outputText.isVisible = state is EchoUiState.Success
                     }
                 }
             }
         }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.isInputValid.collect { valid ->
+                    binding.submitButton.isEnabled = valid
+                }
+            }
+        }
+
+        lifecycleScope.launch {
+            viewModel.remainingChars.collect { remaining ->
+                binding.charCounter.text = "$remaining characters remaining"
+            }
+        }
     }
 
     private fun submitText() {
-        viewModel.submit(binding.textInput.text?.toString().orEmpty())
+        viewModel.submit(binding.textInput.text!!.toString())
     }
 }
