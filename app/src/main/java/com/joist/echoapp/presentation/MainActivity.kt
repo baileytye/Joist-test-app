@@ -40,9 +40,16 @@ class MainActivity : AppCompatActivity() {
                     binding.apply {
                         textInputLayout.error = if (state is EchoUiState.Error) state.message else null
                         progressBar.isVisible = state is EchoUiState.Loading
-                        submitButton.isEnabled = state !is EchoUiState.Loading
                         outputText.isVisible = state is EchoUiState.Success
                     }
+                }
+            }
+        }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.isInputValid.collect { valid ->
+                    binding.submitButton.isEnabled = valid
                 }
             }
         }
