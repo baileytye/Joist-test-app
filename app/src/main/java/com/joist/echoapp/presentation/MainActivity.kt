@@ -27,8 +27,9 @@ class MainActivity : AppCompatActivity() {
 
         binding.submitButton.setOnClickListener { submitText() }
 
-        binding.textInput.doOnTextChanged { _, _, _, _ ->
+        binding.textInput.doOnTextChanged { text, _, _, _ ->
             binding.textInputLayout.error = null
+            viewModel.onTextChanged(text?.toString().orEmpty())
         }
 
         lifecycleScope.launch {
@@ -45,9 +46,15 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+
+        lifecycleScope.launch {
+            viewModel.remainingChars.collect { remaining ->
+                binding.charCounter.text = "$remaining characters remaining"
+            }
+        }
     }
 
     private fun submitText() {
-        viewModel.submit(binding.textInput.text?.toString().orEmpty())
+        viewModel.submit(binding.textInput.text!!.toString())
     }
 }

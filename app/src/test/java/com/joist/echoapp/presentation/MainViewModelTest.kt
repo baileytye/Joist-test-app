@@ -3,6 +3,7 @@ package com.joist.echoapp.presentation
 import com.joist.echoapp.domain.TextRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -62,5 +63,24 @@ class MainViewModelTest {
 
         assertTrue(viewModel.uiState.value is EchoUiState.Error)
         verify(repository).validate("")
+    }
+
+    @Test
+    fun `onTextChanged updates remainingChars`() = runTest(testDispatcher) {
+        val viewModel = MainViewModel(repository)
+
+        viewModel.onTextChanged("Hello")
+
+        assertEquals(95, viewModel.remainingChars.value)
+    }
+
+    @Test
+    fun `submit over limit emits Error without calling repository`() = runBlocking {
+        val viewModel = MainViewModel(repository)
+        val longText = "a".repeat(101)
+
+        viewModel.submit(longText)
+
+        assertTrue(viewModel.uiState.value is EchoUiState.Error)
     }
 }
